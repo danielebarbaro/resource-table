@@ -1,9 +1,7 @@
 <?php namespace Msieprawski\ResourceTable\Generators;
 
-use Input;
-use Request;
+use Illuminate\Support\Facades\Request;
 use Msieprawski\ResourceTable\Helpers\Column;
-use Msieprawski\ResourceTable\Exceptions\TableException;
 
 /**
  * Table object to represent a table :)
@@ -29,12 +27,12 @@ class Table
     /**
      * Sets collection data and config (per_page, columns, paginate...)
      *
-     * @param array $collection
-     * @param array $config
+     * @param  array  $collection
+     * @param  array  $config
      */
-    public function __construct(array $collection, array $config)
+    public function __construct( $collection, array $config)
     {
-        $this->_collection = $collection;
+        $this->_collection = is_array($collection) ? $collection : $collection->toArray();
         $this->_config = $config;
     }
 
@@ -129,7 +127,7 @@ class Table
      */
     public function filterFormAction()
     {
-        return Request::url().'?'.http_build_query(Input::query());
+        return Request::fullUrlWithQuery(Request::all());
     }
 
     /**

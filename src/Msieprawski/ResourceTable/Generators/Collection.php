@@ -1,11 +1,11 @@
 <?php namespace Msieprawski\ResourceTable\Generators;
 
-use Input;
-use Request;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Msieprawski\ResourceTable\Exceptions\CollectionException;
 use Msieprawski\ResourceTable\Helpers\Column;
 use Msieprawski\ResourceTable\ResourceTable;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
  * Collection object which is representing given $builder's collection
@@ -101,7 +101,7 @@ class Collection
     /**
      * Sets builder object
      *
-     * @param \Illuminate\Database\Query\Builder $builder
+     * @param  \Illuminate\Database\Query\Builder  $builder
      */
     public function __construct(\Illuminate\Database\Query\Builder $builder)
     {
@@ -111,7 +111,7 @@ class Collection
     /**
      * Sets $_paginationPresenter object name
      *
-     * @param string $presenter
+     * @param  string  $presenter
      * @return $this
      */
     public function setPaginationPresenter($presenter)
@@ -123,7 +123,7 @@ class Collection
     /**
      * Sets $_paginate variable
      *
-     * @param bool $paginate
+     * @param  bool  $paginate
      * @return $this
      * @throws CollectionException
      */
@@ -140,7 +140,7 @@ class Collection
     /**
      * Set renderer default namespace to prevent long class names
      *
-     * @param string $namespace
+     * @param  string  $namespace
      * @return $this
      * @throws CollectionException
      */
@@ -167,7 +167,7 @@ class Collection
     /**
      * Sets $_perPage variable
      *
-     * @param int $perPage
+     * @param  int  $perPage
      * @return $this
      * @throws CollectionException
      */
@@ -184,7 +184,7 @@ class Collection
     /**
      * Sets $_page variable
      *
-     * @param int $page
+     * @param  int  $page
      * @return $this
      * @throws CollectionException
      */
@@ -201,7 +201,7 @@ class Collection
     /**
      * Adds column to resource table
      *
-     * @param array $data
+     * @param  array  $data
      * @return $this
      * @throws CollectionException
      */
@@ -240,7 +240,7 @@ class Collection
             'columns'              => $this->_columns,
             'per_page'             => $this->_perPage,
             'paginate'             => $this->_paginate,
-            'paginator_presenter'  => $this->_getPaginatorPresenter($items),
+            'paginator_presenter'  => $this->_getPaginatorPresenter($items->toArray())->render(),
             'view_name'            => $this->_viewName,
             'filter'               => $this->_filter,
             'extra'                => $this->_extraViewData,
@@ -273,8 +273,8 @@ class Collection
     /**
      * Sets sort configuration
      *
-     * @param string $index
-     * @param string $direction
+     * @param  string  $index
+     * @param  string  $direction
      * @return $this
      * @throws CollectionException
      */
@@ -291,7 +291,7 @@ class Collection
     /**
      * Sets package view name for further rendering
      *
-     * @param string $name
+     * @param  string  $name
      * @return $this
      * @throws CollectionException
      */
@@ -303,7 +303,7 @@ class Collection
     /**
      * Sets custom view name for further rendering
      *
-     * @param string $name
+     * @param  string  $name
      * @return $this
      * @throws CollectionException
      */
@@ -315,7 +315,7 @@ class Collection
     /**
      * Sets extra (custom) view data
      *
-     * @param array $data
+     * @param  array  $data
      * @return $this
      */
     public function setExtraViewData(array $data)
@@ -327,8 +327,8 @@ class Collection
     /**
      * Sets view name for further rendering
      *
-     * @param string $name
-     * @param bool $custom
+     * @param  string  $name
+     * @param  bool  $custom
      * @return $this
      * @throws CollectionException
      */
@@ -355,7 +355,7 @@ class Collection
     /**
      * Sets true if filter should be rendered
      *
-     * @param bool $enabled
+     * @param  bool  $enabled
      * @return $this
      * @throws CollectionException
      */
@@ -376,7 +376,7 @@ class Collection
      */
     public function resetFormUrl()
     {
-        $params = Input::get();
+        $params = Request::all();
 
         $fieldsToReset = [];
         foreach ($this->_columns as $columnData) {
@@ -392,7 +392,7 @@ class Collection
             }
         }
 
-        return Request::url().'?'.http_build_query($params);
+        return Request::fullUrlWithQuery($params);
     }
 
     /**
@@ -400,7 +400,7 @@ class Collection
      * Returns bool if it's valid
      * Returns string it it's not valid
      *
-     * @param array $data
+     * @param  array  $data
      * @return bool|string
      */
     private function _validateColumn(array $data)
@@ -426,11 +426,11 @@ class Collection
     /**
      * Adds condition to the query builder
      *
-     * @param \Illuminate\Database\Query\Builder $builder
-     * @param string $type
-     * @param string $columnName
-     * @param string $operator
-     * @param string $value
+     * @param  \Illuminate\Database\Query\Builder  $builder
+     * @param  string  $type
+     * @param  string  $columnName
+     * @param  string  $operator
+     * @param  string  $value
      * @return \Illuminate\Database\Query\Builder
      */
     private function _addQueryCondition($builder, $type, $columnName, $operator, $value)
@@ -459,7 +459,7 @@ class Collection
     private function _prepareBuilder()
     {
         $builder = $this->_builder;
-        $params = Input::get();
+        $params = Request::all();
 
         /*
          * START filters
@@ -484,21 +484,23 @@ class Collection
                 }
 
                 $value = $this->_prepareFilterValue($columnData, $value);
-                switch ($column->searchType()) {
 
+                switch ($column->searchType()) {
                     // Use simple WHERE = 'value' for selects
                     case 'select':
                         if (ResourceTable::ALL_SELECT_VALUES_KEY == $value) {
                             // Any value in select - skip it
                             continue;
                         }
-                        $builder = $this->_addQueryCondition($builder, $column->queryConditionType(), $column->getDatabaseName(), '=', $value);
+                        $builder = $this->_addQueryCondition($builder, $column->queryConditionType(),
+                            $column->getDatabaseName(), '=', $value);
                         break;
 
                     // Use LIKE '%value%' for strings
                     case 'string':
                     default:
-                        $builder = $this->_addQueryCondition($builder, $column->queryConditionType(), $column->getDatabaseName(), 'LIKE', '%'.$value.'%');
+                        $builder = $this->_addQueryCondition($builder, $column->queryConditionType(),
+                            $column->getDatabaseName(), 'LIKE', '%'.$value.'%');
                         break;
                 }
             }
@@ -513,12 +515,12 @@ class Collection
         if ($this->_paginate) {
             if (isset($params['per_page']) && is_numeric($params['per_page']) && $params['per_page'] > 0) {
                 // Get per_page from GET
-                $this->_perPage = (int)$params['per_page'];
+                $this->_perPage = (int) $params['per_page'];
             }
 
             if (isset($params['page']) && is_numeric($params['page']) && $params['page'] > 1) {
                 // Get page from GET
-                $this->_page = (int)$params['page'];
+                $this->_page = (int) $params['page'];
             }
             $toSkip = ($this->_page * $this->_perPage) - $this->_perPage;
 
@@ -553,7 +555,7 @@ class Collection
     /**
      * Returns total results for given query
      *
-     * @param \Illuminate\Database\Query\Builder $builder
+     * @param  \Illuminate\Database\Query\Builder  $builder
      * @return int
      */
     private function _getCountForPagination($builder)
@@ -567,8 +569,8 @@ class Collection
      * Basing on column configuration prepares given field value
      * If column configuration has filter function - use it to prepare value
      *
-     * @param array $column
-     * @param mixed $value
+     * @param  array  $column
+     * @param  mixed  $value
      * @return mixed
      */
     private function _prepareFilterValue(array $column, $value)
@@ -585,7 +587,7 @@ class Collection
     /**
      * Checks if provided order configuration (from GET) is valid
      *
-     * @param array $params
+     * @param  array  $params
      * @return bool
      */
     private function _validSort(array $params)
@@ -611,7 +613,7 @@ class Collection
     /**
      * Returns Paginator Presenter object if pagination is enabled
      *
-     * @param array $items
+     * @param  array  $items
      * @return mixed
      */
     private function _getPaginatorPresenter(array $items)
@@ -620,7 +622,8 @@ class Collection
             return null;
         }
 
-        $params = Input::get();
+        $params = Request::all();
+
         if (!empty($params)) {
             // There are parameters in the URL - pass them to paginator
             if (isset($params['page'])) {
@@ -630,10 +633,9 @@ class Collection
         }
 
         // Prepare paginator and pass it to presenter
-        $paginator = new LengthAwarePaginator($items, $this->_totalItems, $this->_perPage, $this->_page, [
+        return new LengthAwarePaginator($items, $this->_totalItems, $this->_perPage, $this->_page, [
             'path' => Request::url(),
+            'query' => $params ? $params : []
         ]);
-        $paginator->appends($params);
-        return new $this->_paginationPresenter($paginator);
     }
 }

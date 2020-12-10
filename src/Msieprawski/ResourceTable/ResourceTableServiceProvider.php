@@ -1,5 +1,6 @@
 <?php namespace Msieprawski\ResourceTable;
 
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 
 class ResourceTableServiceProvider extends ServiceProvider
@@ -18,6 +19,7 @@ class ResourceTableServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Paginator::useBootstrapThree();
         $views = __DIR__.'/views';
         $this->loadViewsFrom($views, 'resource-table');
 

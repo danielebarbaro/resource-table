@@ -1,7 +1,6 @@
 <?php namespace Msieprawski\ResourceTable\Helpers;
 
-use Input;
-use Request;
+use Illuminate\Support\Facades\Request;
 use Msieprawski\ResourceTable\ResourceTable;
 
 /**
@@ -153,9 +152,7 @@ class Column
      */
     public function sortUrl()
     {
-        $url = Request::url();
-        $params = Input::get();
-
+        $params = Request::all();
         $params['order_by'] = $this->index();
         if ($this->sortActive()) {
             $params['order_dir'] = mb_strtolower($this->_sortDirection()) == 'desc' ? 'ASC' : 'DESC';
@@ -163,7 +160,7 @@ class Column
             $params['order_dir'] = ResourceTable::DEFAULT_SORT_DIR;
         }
 
-        return $url.'?'.http_build_query($params);
+        return Request::fullUrlWithQuery($params);
     }
 
     /**

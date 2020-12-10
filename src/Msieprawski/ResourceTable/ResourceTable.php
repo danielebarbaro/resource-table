@@ -1,6 +1,7 @@
 <?php namespace Msieprawski\ResourceTable;
 
-use Input;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Request;
 use Msieprawski\ResourceTable\Generators\Collection;
 
 /**
@@ -55,7 +56,7 @@ class ResourceTable
     /**
      * Sets builder and returns collection
      *
-     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $builder
+     * @param  \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder  $builder
      * @return Collection
      */
     public static function of($builder)
@@ -83,7 +84,7 @@ class ResourceTable
     /**
      * Returns array with valid column type options
      *
-     * @param string $type
+     * @param  string  $type
      * @return bool
      */
     public static function validColumnType($type)
@@ -96,19 +97,19 @@ class ResourceTable
     /**
      * Returns search form default value
      *
-     * @param string $name
+     * @param  string  $name
      * @return mixed
      */
     public static function getSearchValue($name)
     {
         $getName = 'resource_table_'.$name;
-        return Input::get($getName);
+        return Request::get($getName);
     }
 
     /**
      * Set pagination presenter class name
      *
-     * @param string $presenter
+     * @param  string  $presenter
      */
     public static function setPaginationPresenter($presenter)
     {
@@ -118,7 +119,7 @@ class ResourceTable
     /**
      * Set ResourceTable built-in view name
      *
-     * @param string $view
+     * @param  string  $view
      */
     public static function setView($view)
     {
@@ -128,7 +129,7 @@ class ResourceTable
     /**
      * Set custom view name if you've created your own ResourceTable template
      *
-     * @param string $customView
+     * @param  string  $customView
      */
     public static function setCustomView($customView)
     {
@@ -138,57 +139,57 @@ class ResourceTable
     /**
      * Set false if you dont want to use pagination
      *
-     * @param bool $paginate
+     * @param  bool  $paginate
      */
     public static function setPaginate($paginate)
     {
-        self::$_customPaginate = (bool)$paginate;
+        self::$_customPaginate = (bool) $paginate;
     }
 
     /**
      * How many results per page
      *
-     * @param int $perPage
+     * @param  int  $perPage
      */
     public static function setPerPage($perPage)
     {
-        self::$_customPerPage = (int)$perPage;
+        self::$_customPerPage = (int) $perPage;
     }
 
     /**
      * Current page
      *
-     * @param int $page
+     * @param  int  $page
      */
     public static function setPage($page)
     {
-        self::$_customPage = (int)$page;
+        self::$_customPage = (int) $page;
     }
 
     /**
      * Set true if you wan to enable filter
      *
-     * @param bool $filter
+     * @param  bool  $filter
      */
     public static function setFilter($filter)
     {
-        self::$_customFilter = (bool)$filter;
+        self::$_customFilter = (bool) $filter;
     }
 
     /**
      * Set renderers default namespace to prevent long renderers names
      *
-     * @param string $namespace
+     * @param  string  $namespace
      */
     public static function setRendererNamespace($namespace)
     {
-        self::$_rendererNamespace = (string)$namespace;
+        self::$_rendererNamespace = (string) $namespace;
     }
 
     /**
      * Sets custom configuration (if set) on given Collection
      *
-     * @param Collection $collection
+     * @param  Collection  $collection
      * @return Collection
      */
     private static function _addCustomAttributes(Collection $collection)

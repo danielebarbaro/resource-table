@@ -488,12 +488,10 @@ class Collection
                 switch ($column->searchType()) {
                     // Use simple WHERE = 'value' for selects
                     case 'select':
-                        if (ResourceTable::ALL_SELECT_VALUES_KEY == $value) {
-                            // Any value in select - skip it
-                            continue;
+                        if (ResourceTable::ALL_SELECT_VALUES_KEY != $value) {
+                            $builder = $this->_addQueryCondition($builder, $column->queryConditionType(),
+                                $column->getDatabaseName(), '=', $value);
                         }
-                        $builder = $this->_addQueryCondition($builder, $column->queryConditionType(),
-                            $column->getDatabaseName(), '=', $value);
                         break;
 
                     // Use LIKE '%value%' for strings
